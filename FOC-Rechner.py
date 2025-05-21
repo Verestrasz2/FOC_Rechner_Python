@@ -15,22 +15,18 @@ from PIL import Image, ImageTk  # Pillow wird benötigt
 import glob
 import os
 
-
-
-import requests
-from packaging import version
-
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, Toplevel, Label, Button
 import requests
 from packaging import version
 
 # Lokale Version
-__version__ = "1.2.0"
+__version__ = "1.1.0"
 
 # GitHub-Rohdaten-Links
-VERSION_URL = "https://raw.githubusercontent.com/Verestrasz2/FOC_Rechner_Python/main/version.txt"
-SCRIPT_URL = "https://raw.githubusercontent.com/Verestrasz2/FOC_Rechner_Python/main/FOC_Rechner.py"
+VERSION_URL = "https://raw.githubusercontent.com/Verestrasz2/FOC_Rechner_Python/master/version.txt"
+SCRIPT_URL  = "https://raw.githubusercontent.com/Verestrasz2/FOC_Rechner_Python/master/FOC-Rechner.py"
+
 
 def get_latest_version():
     try:
@@ -50,19 +46,34 @@ def update_script():
         if response.status_code == 200:
             with open("FOC_Rechner.py", "w", encoding="utf-8") as f:
                 f.write(response.text)
-            messagebox.showinfo("Update", "Das Skript wurde erfolgreich aktualisiert.\nBitte starte es neu.")
+            messagebox.showinfo("Update abgeschlossen", "Das Skript wurde erfolgreich aktualisiert.\nBitte starte es neu.")
         else:
-            messagebox.showerror("Fehler", "Update konnte nicht heruntergeladen werden.")
+            messagebox.showerror("Update-Fehler", "Das Update konnte nicht heruntergeladen werden.")
     except Exception as e:
         messagebox.showerror("Fehler", f"Fehler beim Update: {e}")
+
+def show_update_dialog(latest_version):
+    update_window = Toplevel()
+    update_window.title("Update verfügbar")
+    update_window.geometry("400x150")  # Größe anpassen
+    update_window.resizable(False, False)
+
+    Label(update_window, text=f"Eine neue Version ({latest_version}) ist verfügbar.", font=("Arial", 12)).pack(pady=10)
+    Label(update_window, text="Möchtest du jetzt updaten?", font=("Arial", 10)).pack()
+
+    def confirm_update():
+        update_window.destroy()  # Fenster schließen
+        update_script()
+
+    Button(update_window, text="Ja, Update durchführen", command=confirm_update, width=25).pack(pady=5)
+    Button(update_window, text="Nein", command=update_window.destroy, width=25).pack()
 
 def check_for_update_gui(label):
     latest = get_latest_version()
     if latest:
         if is_update_available(__version__, latest):
             label.config(text=f"Update verfügbar: {latest}")
-            if messagebox.askyesno("Update verfügbar", f"Eine neue Version ({latest}) ist verfügbar.\nMöchtest du updaten?"):
-                update_script()
+            show_update_dialog(latest)
         else:
             label.config(text="Du hast die neueste Version.")
     else:
@@ -72,20 +83,20 @@ def check_for_update_gui(label):
 def start_gui():
     root = tk.Tk()
     root.title("FOC Rechner")
+    root.geometry("400x300")  # Fenstergröße für dein Hauptfenster
 
-    version_label = tk.Label(root, text="Version wird geprüft...", fg="blue")
+    version_label = tk.Label(root, text="Version wird geprüft...", fg="blue", font=("Arial", 10))
     version_label.pack(pady=10)
 
-    # Hauptinhalt deines Fensters (Buttons, Eingabefelder, etc.) kommt hier hin
+    # Hier kommen andere GUI-Elemente wie Buttons etc.
     # ...
 
-    # Version prüfen (nachdem GUI geladen ist)
-    root.after(100, lambda: check_for_update_gui(version_label))
-
+    root.after(200, lambda: check_for_update_gui(version_label))
     root.mainloop()
 
 if __name__ == "__main__":
     start_gui()
+
 
 
 def preset_laden_auswahl():
@@ -434,7 +445,7 @@ tk.Button(root, text="convert", command=gewicht_schaft_aus_eingabe_berechnen).gr
 result_label = tk.Label(root, text="", font=("Arial", 12), justify="left")
 result_label.grid(row=8, column=0, columnspan=3, pady=10)
 
-from tkinter import ttk  
+from tkinter import ttk
 
 # Variable für Auswahl
 preset_var = tk.StringVar()
